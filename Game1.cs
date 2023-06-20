@@ -13,6 +13,8 @@ namespace AnimationTest2
         
         private Goblin _goblin; //this is our awesome goblin object
 
+        private RatFolk _ratFolk;
+
         private SpriteFont _font;
 
         public Game1()
@@ -44,6 +46,9 @@ namespace AnimationTest2
             _goblin.loadWalkSprite(Content.Load<Texture2D>("goblinWalkSpriteSheet"), 1, 8);
 
 
+            //ratfolk just needs the sprite sheet and the rows and columns, no work gets done after the fact
+            _ratFolk = new RatFolk(300, 300, Content.Load<Texture2D>("RatfolkTamerSpritesheet"), 6, 8);
+
             _font = Content.Load<SpriteFont>("GoblinFont");
 
         }
@@ -56,6 +61,7 @@ namespace AnimationTest2
             //call our object's updates
             _explosion.Update();
             _goblin.Update();
+            _ratFolk.Update();
 
             base.Update(gameTime);
         }
@@ -67,12 +73,13 @@ namespace AnimationTest2
             _spriteBatch.Begin();
             //just some text...
             _spriteBatch.DrawString(_font, "Animation demo - not a real game.", new Vector2(200,15), Color.White);
-            _spriteBatch.DrawString(_font, "Arrow keys to move, space to \"attack\".", new Vector2(185, 440), Color.White);
+            _spriteBatch.DrawString(_font, "Goblin - Arrow keys + Space. Rat - WASD + LShift.", new Vector2(80, 440), Color.White);
             _spriteBatch.End();
 
             //call our object's draws
             _explosion.Draw(_spriteBatch);
             _goblin.Draw(_spriteBatch);
+            _ratFolk.Draw(_spriteBatch);
 
             base.Draw(gameTime);
         }

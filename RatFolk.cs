@@ -11,7 +11,7 @@ namespace AnimationTest2
 {
     //this is an enum - it will make it easier to 
     //keep track of the Goblin states
-    enum GoblinState
+    enum RatState
     {
         walking,
         attacking,
@@ -19,20 +19,19 @@ namespace AnimationTest2
     }
 
 
-    internal class Goblin
+    internal class RatFolk
     {
-        //four textures - three for different potential movements, and one to store the 
-        //current movement.
-        private Texture2D _goblinAttackingSprite, _goblinIdleSprite, _goblinWalkingSprite, _goblinCurrentSprite;
+        //ONE TEXTURE this time - compare with Goblin.
+        private Texture2D _ratFolkSpriteSheet;
 
-        //variables for each of the spritesheets - this way, they can have different
+        //variables for each of the rows in the spritesheet - this way, they can have different
         //configurations with no concerns for the algorithm
-        private int _attackRows, _attackCols, _totalAttackFrames;
-        private int _idleRows, _idleCols, _totalIdleFrames;
-        private int _walkRows, _walkCols, _totalWalkFrames;
+        private int _attackRow, _attackCols, _totalAttackFrames;
+        private int _idleRow, _idleCols, _totalIdleFrames;
+        private int _walkRow, _walkCols, _totalWalkFrames;
 
         //this will store the current spritesheet details that we're using
-        private int _cols, _rows, _totalFrames, _currentFrame;
+        private int _cols, _rows, _currentRow, _totalFrames, _currentFrame;
 
         //goblin position
         private int _x, _y;
@@ -51,44 +50,36 @@ namespace AnimationTest2
         
         //constructor - the nature of this object means we're going to do a lot of work
         //to set it up post construction
-        public Goblin(int x, int y)
+        public RatFolk(int x, int y, Texture2D ratFolkSpriteSheet, int rows, int cols)
         {
             _currentFrame = 0;
             _x = x;
             _y = y;
             _counter = 0;
+            _ratFolkSpriteSheet = ratFolkSpriteSheet;
+
+            //these are for thw whole sheet
+            _rows = rows;
+            _cols = cols;
+            
+            //I'm hard-coding these values, but you COULD bring them in as arguments.
+            //This is KEY for the single sprite sheet - what row are the different animations on?
+            _attackRow = 2;
+            _idleRow = 0;
+            _walkRow = 1;
+
+            //for the RatFolk, they are all 8, but they could easily be different numbers of columns
+            _attackCols = 8;
+            _idleCols = 8;
+            _walkCols = 8;
+
+            //since these are all single rows, this is trivial, but if they were multi rows, you would multiply.
+            _totalAttackFrames = _attackCols;
+            _totalIdleFrames = _idleCols;
+            _totalWalkFrames = _walkCols;
+
         }
 
-        //load the attack sprite sheet and set the appropriate variables
-        public void loadAttackSprite(Texture2D goblinAttackSprite, int rows, int cols)
-        {
-            _totalAttackFrames = _attackRows * _attackCols;
-            _goblinAttackingSprite = goblinAttackSprite;
-            _attackRows = rows;
-            _attackCols = cols;
-            _totalAttackFrames = _attackRows * _attackCols;
-        }
-
-        //load the idle sprite sheet and set the appropriate variables
-        public void loadIdleSprite(Texture2D goblinIdleSprite, int rows, int cols)
-        {
-            _totalIdleFrames = _idleRows * _idleCols;
-            _goblinIdleSprite = goblinIdleSprite;
-            _idleRows = rows;
-            _idleCols = cols;
-            _totalIdleFrames = _idleRows * _idleCols;
-            changeAnimationState(RatState.idle);
-        }
-
-        //load the walk sprite sheet and set the appropriate variables
-        public void loadWalkSprite(Texture2D goblinWalkSprite, int rows, int cols)
-        {
-            _totalWalkFrames = _walkRows * _walkCols;
-            _goblinWalkingSprite = goblinWalkSprite;
-            _walkRows = rows;
-            _walkCols = cols;
-            _totalWalkFrames = _walkRows * _walkCols;
-        }
 
         //here's the magic- but it's actually not much
         public void Update()
@@ -96,7 +87,7 @@ namespace AnimationTest2
             _counter++; //update the counter 
 
             //space bar press and not attacking
-            if (Keyboard.GetState().IsKeyDown(Keys.Space) && !_attacking)
+            if (Keyboard.GetState().IsKeyDown(Keys.LeftShift) && !_attacking)
             {
                 _attacking = true;  //we are now attacking
                 changeAnimationState(RatState.attacking);  //change states (see below)
@@ -106,26 +97,26 @@ namespace AnimationTest2
             if (!_attacking)
             {
                 //arrow keys - they all work the same-ish way
-                if (Keyboard.GetState().IsKeyDown(Keys.Right))
+                if (Keyboard.GetState().IsKeyDown(Keys.D))
                 {
                     changeAnimationState(RatState.walking);
                     _x += 5;
                     _flipLeft = SpriteEffects.None;
 
                 }
-                if (Keyboard.GetState().IsKeyDown(Keys.Left))
+                if (Keyboard.GetState().IsKeyDown(Keys.A))
                 {
                     changeAnimationState(RatState.walking);
                     _x -= 5;
                     _flipLeft = SpriteEffects.FlipHorizontally;
 
                 }
-                if (Keyboard.GetState().IsKeyDown(Keys.Down))
+                if (Keyboard.GetState().IsKeyDown(Keys.S))
                 {
                     changeAnimationState(RatState.walking);
                     _y += 5;
                 }
-                if (Keyboard.GetState().IsKeyDown(Keys.Up))
+                if (Keyboard.GetState().IsKeyDown(Keys.W))
                 {
                     changeAnimationState(RatState.walking);
                     _y -= 5;
@@ -154,25 +145,22 @@ namespace AnimationTest2
                 //if we are attacking, set these variables
                 if (newState == RatState.attacking)
                 {
-                    _goblinCurrentSprite = _goblinAttackingSprite;
                     _cols = _attackCols;
-                    _rows = _attackRows;
+                    _currentRow = _attackRow;
                     _totalFrames = _totalAttackFrames;
                 }
                 //if we are walking, set these variables
                 else if (newState == RatState.walking)
                 {
-                    _goblinCurrentSprite = _goblinWalkingSprite;
                     _cols = _walkCols;
-                    _rows = _walkRows;
+                    _currentRow = _walkRow;
                     _totalFrames = _totalWalkFrames;
                 }
                 //we must be idle
                 else
                 {
-                    _goblinCurrentSprite = _goblinIdleSprite;
                     _cols = _idleCols;
-                    _rows = _idleRows;
+                    _currentRow = _idleRow;
                     _totalFrames = _totalIdleFrames;
                 }
             }
@@ -204,10 +192,10 @@ namespace AnimationTest2
 
             //this is the engine of the animation work - it relies on 
             //all the variables that we set in the changeAnimationState method.
-            int width = _goblinCurrentSprite.Width / _cols;
-            int height = _goblinCurrentSprite.Height / _rows;
-            int row = _currentFrame / _cols;
-            int column = _currentFrame % _cols;
+            int width = _ratFolkSpriteSheet.Width / _cols;
+            int height = _ratFolkSpriteSheet.Height / _rows;
+            int row = _currentRow;
+            int column = _currentFrame;
 
             Rectangle sourceRectangle = new Rectangle(width * column, height * row, width, height);
             Rectangle destinationRectangle = new Rectangle(_x, _y, width, height);
@@ -215,7 +203,7 @@ namespace AnimationTest2
             //special begin so that we can scale the sprites without losing any detail
             spriteBatch.Begin(SpriteSortMode.Deferred, null, SamplerState.PointClamp, null, null);
             //complex draw so we can do cool things
-            spriteBatch.Draw(_goblinCurrentSprite, new Vector2(_x, _y), sourceRectangle, Color.White, 0, new Vector2(width/2, height/2), new Vector2(4f, 4f), _flipLeft, 0);
+            spriteBatch.Draw(_ratFolkSpriteSheet, new Vector2(_x, _y), sourceRectangle, Color.White, 0, new Vector2(width/2, height/2), new Vector2(4f, 4f), _flipLeft, 0);
             spriteBatch.End();
         }
 
